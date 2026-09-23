@@ -1,0 +1,76 @@
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-page__greeting {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+  margin: 4px 0 0;
+}
+
+.dashboard-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-page__section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.dashboard-page__status-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+}
+
+.dashboard-page__status-card--success {
+  background: #e6f7ec;
+}
+
+.dashboard-page__status-icon {
+  font-size: 26px;
+  color: #1e7a3d;
+  width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.dashboard-page__status-label {
+  font-weight: 700;
+  font-size: 15px;
+  color: #111827;
+}
+
+.dashboard-page__status-time {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.dashboard-page__cta {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 14px;
+  border: none;
+  background: #92eeff;
+  color: #0b2530;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dashboard-page__cta:active {
+  filter: brightness(0.95);
+}

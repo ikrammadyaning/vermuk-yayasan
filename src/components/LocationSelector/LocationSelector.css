@@ -1,0 +1,68 @@
+.location-selector__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 4px 0 16px;
+}
+
+.location-selector__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-selector__card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+}
+
+.location-selector__info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-selector__pin {
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(146, 238, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.location-selector__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.location-selector__subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.location-selector__btn {
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #92eeff;
+  color: #0b2530;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.location-selector__btn:active {
+  filter: brightness(0.95);
+}

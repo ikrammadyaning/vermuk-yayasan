@@ -1,0 +1,39 @@
+.attendance-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.attendance-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.attendance-card__location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.attendance-card__distance {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.attendance-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
