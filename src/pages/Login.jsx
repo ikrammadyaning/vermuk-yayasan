@@ -26,7 +26,7 @@ export default function Login() {
   return (
     <main className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">🏢</div>
+        <div className="auth-logo"><img src="public/assets/logo-placeholder.png" alt="" /></div>
         <p className="auth-eyebrow">SISTEM ABSENSI</p>
         <h1>Login</h1>
         <p className="auth-subtitle">Staff masuk untuk melakukan absensi. Admin masuk untuk melihat riwayat absensi seluruh staff.</p>

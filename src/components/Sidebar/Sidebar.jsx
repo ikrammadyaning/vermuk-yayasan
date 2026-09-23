@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { getCurrentEmployee, isAdmin, logoutEmployee } from "../../services/authService";
 import "./Sidebar.css";
 
-const COMPANY_NAME = "NAMA PERUSAHAAN";
+const COMPANY_NAME = "LPK Karisma Melati SG";
 
 const STAFF_NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
