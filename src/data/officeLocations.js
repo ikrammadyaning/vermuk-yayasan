@@ -5,7 +5,7 @@
 export const officeLocations = [
   {
     id: 1,
-    name: "Pusat",
+    name: "Head Office",
     googleMapsUrl: "https://maps.app.goo.gl/DFdr8X54oSdELrBa8",
     latitude: -6.296565590898558,
     longitude: 106.97356988878227,
@@ -14,7 +14,7 @@ export const officeLocations = [
   },
   {
     id: 2,
-    name: "Cabang 1",
+    name: "KMKC 1",
     googleMapsUrl: "https://maps.app.goo.gl/z28WrqsyiQtKhQDH8",
     latitude: -6.3002545853050504,
     longitude: 106.96961107216039,
@@ -23,7 +23,7 @@ export const officeLocations = [
   },
   {
     id: 3,
-    name: "Cabang 2",
+    name: "KMKC 2",
     googleMapsUrl: "https://maps.app.goo.gl/jZ7hoAx5iSA4ZLWD9?g_st=awb",
     latitude: -6.299806695486294,
     longitude: 106.96989002208893,
@@ -36,7 +36,7 @@ export const officeLocations = [
     googleMapsUrl: "https://maps.app.goo.gl/CcWqy7C9WM1ne87r5",
     latitude: -6.968049250794925,
     longitude: 106.78555693686727,
-    radius: 10000,
+    radius: 1000000000,
     status: "active",
   },
 ];
