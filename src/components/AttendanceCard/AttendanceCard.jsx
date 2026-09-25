@@ -11,9 +11,10 @@ function formatDate(isoString) {
   });
 }
 
-function formatTime(isoString) {
+function formatTimeWIB(isoString) {
   const date = new Date(isoString);
   return date.toLocaleTimeString("id-ID", {
+    timeZone: "Asia/Jakarta",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -25,6 +26,24 @@ function formatTime(isoString) {
 export default function AttendanceCard({ record }) {
   if (!record) return null;
 
+  const getStatusText = () => {
+    if (record.type === "check-out") {
+      return "Selesai";
+    } else if (record.type === "check-in") {
+      return "Belum Check-out";
+    }
+    return "✓ Absensi berhasil";
+  };
+
+  const getStatusVariant = () => {
+    if (record.type === "check-out") {
+      return "success";
+    } else if (record.type === "check-in") {
+      return "warning";
+    }
+    return "success";
+  };
+
   return (
     <div className="attendance-card">
       <div className="attendance-card__top">
@@ -32,7 +51,7 @@ export default function AttendanceCard({ record }) {
           {formatDate(record.timestamp)}
         </span>
         <span className="attendance-card__time">
-          {formatTime(record.timestamp)}
+          {formatTimeWIB(record.timestamp)}
         </span>
       </div>
 
@@ -49,7 +68,9 @@ export default function AttendanceCard({ record }) {
         <StatusBadge variant={record.faceVerified ? "success" : "error"}>
           {record.faceVerified ? "✓ Wajah terverifikasi" : "✕ Verifikasi gagal"}
         </StatusBadge>
-        <StatusBadge variant="success">✓ Absensi berhasil</StatusBadge>
+        <StatusBadge variant={getStatusVariant()}>
+          {getStatusText()}
+        </StatusBadge>
       </div>
     </div>
   );

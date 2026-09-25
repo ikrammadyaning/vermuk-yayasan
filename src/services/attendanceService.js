@@ -1,4 +1,12 @@
-import { insertAttendance, isRemoteDatabaseEnabled, selectAllAttendance, selectAttendance } from "./database";
+import {
+  insertAttendance,
+  isRemoteDatabaseEnabled,
+  selectAllAttendance,
+  selectAttendance,
+  recordCheckout,
+  getLatestCheckIn,
+  getLatestCheckOut,
+} from "./database";
 
 const STORAGE_KEY = "attendance_records";
 
@@ -54,3 +62,56 @@ export async function getAllAttendanceHistory() {
 
 export async function getLatestAttendance(employeeId) { const history = await getAttendanceHistory(employeeId); return history[0] || null; }
 export async function hasAttendedToday(employeeId) { const today = new Date().toDateString(); const history = await getAttendanceHistory(employeeId); return history.some((r) => new Date(r.timestamp).toDateString() === today); }
+
+export async function getTodayCheckIn(employeeId) {
+  if (isRemoteDatabaseEnabled) {
+    const record = await getLatestCheckIn(employeeId);
+    if (record && new Date(record.timestamp).toDateString() === new Date().toDateString()) {
+      return mapRecord(record);
+    }
+    return null;
+  }
+
+  const history = await getAttendanceHistory(employeeId);
+  const today = new Date().toDateString();
+  return history.find((r) => r.type === "check-in" && new Date(r.timestamp).toDateString() === today) || null;
+}
+
+export async function getTodayCheckOut(employeeId) {
+  if (isRemoteDatabaseEnabled) {
+    const record = await getLatestCheckOut(employeeId);
+    if (record && new Date(record.timestamp).toDateString() === new Date().toDateString()) {
+      return mapRecord(record);
+    }
+    return null;
+  }
+
+  const history = await getAttendanceHistory(employeeId);
+  const today = new Date().toDateString();
+  return history.find((r) => r.type === "check-out" && new Date(r.timestamp).toDateString() === today) || null;
+}
+
+export async function checkOut(record) {
+  if (isRemoteDatabaseEnabled) {
+    const result = await recordCheckout(
+      record.employeeId,
+      record.checkInId,
+      record.officeLocationId,
+      record.latitude,
+      record.longitude,
+      record.distanceFromOffice,
+      record.faceVerified ?? false
+    );
+    return result && Array.isArray(result) ? mapRecord(result[0]) : null;
+  }
+
+  const records = getAllAttendance();
+  const newRecord = {
+    ...record,
+    id: records.length ? Math.max(...records.map((r) => r.id)) + 1 : 1,
+    timestamp: record.timestamp ?? new Date().toISOString(),
+    type: "check-out",
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([newRecord, ...records]));
+  return newRecord;
+}

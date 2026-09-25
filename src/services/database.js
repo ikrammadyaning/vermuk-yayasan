@@ -66,3 +66,42 @@ export async function selectAttendance(employeeId) {
 export async function selectAllAttendance() {
   return request("attendance?select=*,employees(full_name,employee_code,username)&order=timestamp.desc");
 }
+
+export async function recordCheckout(
+  employeeId,
+  checkInId,
+  officeLocationId,
+  latitude,
+  longitude,
+  distanceFromOffice,
+  faceVerified = false
+) {
+  const payload = {
+    p_employee_id: employeeId,
+    p_check_in_id: checkInId,
+    p_office_location_id: officeLocationId,
+    p_latitude: latitude,
+    p_longitude: longitude,
+    p_distance_from_office: distanceFromOffice,
+    p_face_verified: faceVerified,
+  };
+  return request("rpc/record_checkout", {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getLatestCheckIn(employeeId) {
+  const rows = await request(
+    `attendance?select=*,employees(full_name,employee_code)&employee_id=eq.${encodeURIComponent(employeeId)}&type=eq.check-in&order=timestamp.desc&limit=1`
+  );
+  return rows?.[0] || null;
+}
+
+export async function getLatestCheckOut(employeeId) {
+  const rows = await request(
+    `attendance?select=*,employees(full_name,employee_code)&employee_id=eq.${encodeURIComponent(employeeId)}&type=eq.check-out&order=timestamp.desc&limit=1`
+  );
+  return rows?.[0] || null;
+}

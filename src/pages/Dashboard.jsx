@@ -1,22 +1,37 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AttendanceCard from "../components/AttendanceCard/AttendanceCard";
-import { getLatestAttendance, hasAttendedToday } from "../services/attendanceService";
+import { getTodayCheckIn, getTodayCheckOut, hasAttendedToday } from "../services/attendanceService";
 import { getCurrentEmployee } from "../services/authService";
 import "./Dashboard.css";
 
+function formatTimeWIB(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("id-ID", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [latest, setLatest] = useState(null);
-  const [attendedToday, setAttendedToday] = useState(false);
+  const [checkIn, setCheckIn] = useState(null);
+  const [checkOut, setCheckOut] = useState(null);
   const employee = getCurrentEmployee();
 
   useEffect(() => {
     let active = true;
     async function load() {
       if (!employee?.id) return;
-      const [latestRecord, today] = await Promise.all([getLatestAttendance(employee.id), hasAttendedToday(employee.id)]);
-      if (active) { setLatest(latestRecord); setAttendedToday(today); }
+      const [todayIn, todayOut] = await Promise.all([
+        getTodayCheckIn(employee.id),
+        getTodayCheckOut(employee.id),
+      ]);
+      if (active) {
+        setCheckIn(todayIn);
+        setCheckOut(todayOut);
+      }
     }
     load();
     return () => { active = false; };
@@ -33,17 +48,17 @@ export default function Dashboard() {
       <section className="dashboard-page__section">
         <h2 className="dashboard-page__section-title">Status Hari Ini</h2>
 
-        {attendedToday && latest ? (
-          <div className="dashboard-page__status-card dashboard-page__status-card--success">
+        {checkIn ? (
+          <div className={`dashboard-page__status-card ${checkOut ? "dashboard-page__status-card--success" : ""}`}>
             <span className="dashboard-page__status-icon">✓</span>
             <div>
-              <div className="dashboard-page__status-label">Sudah Absen</div>
+              <div className="dashboard-page__status-label">
+                {checkOut ? "Selesai" : "Sudah Absen Masuk"}
+              </div>
               <div className="dashboard-page__status-time">
-                {new Date(latest.timestamp).toLocaleTimeString("id-ID", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                · {latest.officeLocationName}
+                {formatTimeWIB(checkIn.timestamp)}
+                {checkOut && ` - ${formatTimeWIB(checkOut.timestamp)}`}
+                {" "} · {checkIn.officeLocationName}
               </div>
             </div>
           </div>
@@ -67,13 +82,13 @@ export default function Dashboard() {
         className="dashboard-page__cta"
         onClick={() => navigate("/attendance")}
       >
-        📍 ABSEN SEKARANG
+        📍 {checkIn && !checkOut ? "ABSEN KELUAR" : "ABSEN SEKARANG"}
       </button>
 
-      {latest && (
+      {checkIn && (
         <section className="dashboard-page__section">
           <h2 className="dashboard-page__section-title">Absensi Terakhir</h2>
-          <AttendanceCard record={latest} />
+          <AttendanceCard record={checkOut || checkIn} />
         </section>
       )}
     </div>

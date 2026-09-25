@@ -37,9 +37,111 @@ create table if not exists public.attendance (
   distance_from_office double precision not null,
   face_verified boolean not null default false,
   type text not null default 'check-in' check (type in ('check-in', 'check-out')),
+  check_in_id bigint references public.attendance(id) on delete set null,
   timestamp timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
+
+-- Fungsi untuk mencatat check-out dengan validasi 9 jam
+create or replace function record_checkout(
+  p_employee_id uuid,
+  p_check_in_id bigint,
+  p_office_location_id bigint,
+  p_latitude double precision,
+  p_longitude double precision,
+  p_distance_from_office double precision,
+  p_face_verified boolean default false
+)
+returns table (
+  id bigint,
+  employee_id uuid,
+  office_location_id bigint,
+  latitude double precision,
+  longitude double precision,
+  distance_from_office double precision,
+  face_verified boolean,
+  type text,
+  check_in_id bigint,
+  timestamp timestamptz,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+as $$
+declare
+  v_check_in public.attendance%rowtype;
+  v_check_out public.attendance%rowtype;
+  v_min_time timestamptz;
+begin
+  -- Cari data check-in
+  select * into v_check_in
+  from public.attendance
+  where id = p_check_in_id
+    and employee_id = p_employee_id
+    and type = 'check-in';
+
+  if not found then
+    raise exception 'Data check-in tidak ditemukan atau不属于 karyawan ini.';
+  end if;
+
+  -- Cek apakah sudah ada check-out untuk check-in ini
+  if exists (
+    select 1 from public.attendance
+    where check_in_id = p_check_in_id
+      and employee_id = p_employee_id
+      and type = 'check-out'
+  ) then
+    raise exception 'Anda sudah melakukan check-out untuk absensi ini.';
+  end if;
+
+  -- Hitung waktu minimum check-out (check-in + 9 jam) dalam zona Asia/Jakarta
+  v_min_time := v_check_in.timestamp AT TIME ZONE 'Asia/Jakarta' + interval '9 hours';
+
+  -- Validasi: waktu sekarang harus >= check-in + 9 jam
+  if now() < v_min_time then
+    raise exception 'Check-out belum diizinkan. Silakan tunggu hingga %s (WIB).',
+      to_char(v_min_time, 'HH24:MI:SS');
+  end if;
+
+  -- Catat check-out
+  insert into public.attendance (
+    employee_id,
+    office_location_id,
+    latitude,
+    longitude,
+    distance_from_office,
+    face_verified,
+    type,
+    check_in_id,
+    timestamp
+  ) values (
+    p_employee_id,
+    p_office_location_id,
+    p_latitude,
+    p_longitude,
+    p_distance_from_office,
+    p_face_verified,
+    'check-out',
+    p_check_in_id,
+    now()
+  )
+  returning * into v_check_out;
+
+  return query
+  select
+    v_check_out.id,
+    v_check_out.employee_id,
+    v_check_out.office_location_id,
+    v_check_out.latitude,
+    v_check_out.longitude,
+    v_check_out.distance_from_office,
+    v_check_out.face_verified,
+    v_check_out.type,
+    v_check_out.check_in_id,
+    v_check_out.timestamp,
+    v_check_out.created_at;
+end;
+$$;
 
 insert into public.office_locations (name, google_maps_url, latitude, longitude, radius, status)
 values
