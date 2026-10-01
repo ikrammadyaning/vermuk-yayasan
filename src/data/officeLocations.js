@@ -5,7 +5,7 @@
 export const officeLocations = [
   {
     id: 1,
-    name: "Head Office",
+    name: "Head Office (HO)",
     googleMapsUrl: "https://maps.app.goo.gl/DFdr8X54oSdELrBa8",
     latitude: -6.296565590898558,
     longitude: 106.97356988878227,
