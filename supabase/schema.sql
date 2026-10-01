@@ -95,7 +95,7 @@ begin
   end if;
 
   -- Hitung waktu minimum check-out (check-in + 9 jam) dalam zona Asia/Jakarta
-  v_min_time := v_check_in.timestamp AT TIME ZONE 'Asia/Jakarta' + interval '9 hours';
+  v_min_time := v_check_in.timestamp AT TIME ZONE 'Asia/Jakarta' + interval '8 hours';
   v_current_time timestamptz := now() AT TIME ZONE 'Asia/Jakarta'; -- Waktu sekarang di zona WIB
 
   -- Validasi: waktu sekarang harus >= check-in + 9 jam

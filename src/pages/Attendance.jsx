@@ -19,7 +19,7 @@ const STEPS = {
   DONE: 3,
 };
 
-const WORK_HOURS_MS = 9 * 60 * 60 * 1000;
+const WORK_HOURS_MS = 8 * 60 * 60 * 1000;
 
 function formatCountdown(ms) {
   if (ms <= 0) return "00:00:00";
