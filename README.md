@@ -69,3 +69,17 @@ set face_enrolled = false, face_descriptor = null;
 ```
 
 Model wajah dimuat dari CDN `@vladmandic/face-api`. Pastikan perangkat memiliki koneksi internet saat pertama kali membuka halaman enrollment/verifikasi.
+
+## Perbaikan check-out (8 jam)
+
+Jika aplikasi yang sudah online gagal saat check-out, perbarui fungsi RPC di proyek Supabase yang benar:
+
+1. Buka `supabase/fix_record_checkout.sql`.
+2. Salin seluruh SQL tersebut ke Supabase Dashboard → SQL Editor pada proyek yang dipakai oleh `VITE_SUPABASE_URL`.
+3. Jalankan SQL. File ini hanya mengganti fungsi `record_checkout`; tidak menghapus tabel atau riwayat absensi.
+4. Pastikan `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` di konfigurasi deploy menunjuk ke proyek Supabase yang sama.
+5. Deploy ulang aplikasi setelah memastikan variabel environment di Netlify benar.
+
+Fungsi ini memakai struktur tabel yang ada pada `supabase/schema.sql` (`type`, `check_in_id`, dan `timestamp`) dan membatasi check-out hingga minimal 8 jam setelah check-in. Jangan menjalankan perubahan skema pada database produksi sebelum memastikan proyek Supabase yang dipilih benar dan melakukan backup.
+
+**Catatan keamanan:** konfigurasi akun custom dan kebijakan RLS permisif yang ada di prototype ini belum cocok untuk aplikasi produksi. Password/session, verifikasi identitas, serta penulisan absensi sebaiknya dipindahkan ke backend tepercaya.

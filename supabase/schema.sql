@@ -42,8 +42,9 @@ create table if not exists public.attendance (
   created_at timestamptz not null default now()
 );
 
--- Fungsi untuk mencatat check-out dengan validasi 9 jam
-create or replace function record_checkout(
+-- Fungsi untuk mencatat check-out setelah 8 jam sejak check-in.
+-- Jalankan ulang file ini di Supabase SQL Editor untuk memperbarui fungsi yang sudah ada.
+create or replace function public.record_checkout(
   p_employee_id uuid,
   p_check_in_id bigint,
   p_office_location_id bigint,
@@ -67,44 +68,44 @@ returns table (
 )
 language plpgsql
 security definer
+set search_path = public, pg_temp
 as $$
 declare
   v_check_in public.attendance%rowtype;
   v_check_out public.attendance%rowtype;
   v_min_time timestamptz;
+  v_current_time timestamptz := now();
 begin
-  -- Cari data check-in
-  select * into v_check_in
-  from public.attendance
-  where id = p_check_in_id
-    and employee_id = p_employee_id
-    and type = 'check-in';
+  -- Lock check-in row to prevent two simultaneous check-outs for the same record.
+  select a.* into v_check_in
+  from public.attendance as a
+  where a.id = p_check_in_id
+    and a.employee_id = p_employee_id
+    and a.type = 'check-in'
+  for update;
 
   if not found then
-    raise exception 'Data check-in tidak ditemukan atau不属于 karyawan ini.';
+    raise exception 'Data check-in tidak ditemukan untuk karyawan ini.';
   end if;
 
-  -- Cek apakah sudah ada check-out untuk check-in ini
   if exists (
-    select 1 from public.attendance
-    where check_in_id = p_check_in_id
-      and employee_id = p_employee_id
-      and type = 'check-out'
+    select 1
+    from public.attendance as a
+    where a.check_in_id = p_check_in_id
+      and a.employee_id = p_employee_id
+      and a.type = 'check-out'
   ) then
     raise exception 'Anda sudah melakukan check-out untuk absensi ini.';
   end if;
 
-  -- Hitung waktu minimum check-out (check-in + 9 jam) dalam zona Asia/Jakarta
-  v_min_time := v_check_in.timestamp AT TIME ZONE 'Asia/Jakarta' + interval '8 hours';
-  v_current_time timestamptz := now() AT TIME ZONE 'Asia/Jakarta'; -- Waktu sekarang di zona WIB
+  -- timestamptz stores an absolute instant; interval arithmetic is timezone-safe.
+  v_min_time := v_check_in.timestamp + interval '8 hours';
 
-  -- Validasi: waktu sekarang harus >= check-in + 9 jam
   if v_current_time < v_min_time then
-    raise exception 'Check-out belum diizinkan. Silakan tunggu hingga %s (WIB).',
-      to_char(v_min_time, 'HH24:MI:SS');
+    raise exception 'Check-out belum diizinkan. Silakan tunggu hingga % (WIB).',
+      to_char(v_min_time at time zone 'Asia/Jakarta', 'HH24:MI:SS');
   end if;
 
-  -- Catat check-out
   insert into public.attendance (
     employee_id,
     office_location_id,
@@ -121,10 +122,10 @@ begin
     p_latitude,
     p_longitude,
     p_distance_from_office,
-    p_face_verified,
+    coalesce(p_face_verified, false),
     'check-out',
     p_check_in_id,
-    now()
+    v_current_time
   )
   returning * into v_check_out;
 
@@ -144,6 +145,8 @@ begin
 end;
 $$;
 
+grant execute on function public.record_checkout(uuid, bigint, bigint, double precision, double precision, double precision, boolean) to anon, authenticated;
+
 insert into public.office_locations (name, google_maps_url, latitude, longitude, radius, status)
 values
   ('Pusat', 'https://maps.app.goo.gl/DFdr8X54oSdELrBa8', -6.296565590898558, 106.97356988878227, 100, 'active'),
@@ -155,7 +158,8 @@ on conflict (name) do nothing;
 create index if not exists idx_attendance_employee_id on public.attendance(employee_id);
 create index if not exists idx_attendance_timestamp on public.attendance(timestamp desc);
 
--- Development RLS: the anon client is allowed to perform the custom-account flow.
+-- DEVELOPMENT ONLY: anon policies below are permissive for the custom-account flow.
+-- Do not use this policy design for production; move identity and attendance writes to a trusted backend.
 -- This is NOT a production-grade auth system. For production, move password verification,
 -- session issuance, face matching and attendance validation into a trusted backend/Edge Function.
 alter table public.employees enable row level security;
